@@ -1,2 +1,84 @@
-# Loop_thru_folder_with_cond
-Loop thru files in folder with applied condition
+Sub LoopAllExcelFilesInFolderWithCond()
+'Loop through all Excel files in a user specified folder and perform a set task on them using conditions
+
+Dim wb As Workbook
+Dim myPath As String
+Dim myfile As String
+Dim myExtension As String
+Dim FldrPicker As FileDialog
+Dim lngrow As Long
+Dim strSearchString As String
+
+'Retrieve condition
+  strSearchString = "limit"
+
+'Optimize Macro Speed
+  Application.ScreenUpdating = False
+  Application.EnableEvents = False
+  Application.Calculation = xlCalculationManual
+
+'Retrieve Target Folder Path From User
+  Set FldrPicker = Application.FileDialog(msoFileDialogFolderPicker)
+
+    With FldrPicker
+      .Title = "Select A Target Folder"
+      .AllowMultiSelect = False
+        If .Show <> -1 Then GoTo NextCode
+        myPath = .SelectedItems(1) & "\"
+    End With
+
+'In Case of Cancel
+NextCode:
+  myPath = myPath
+  If myPath = "" Then GoTo ResetSettings
+
+'Target File Extension (must include wildcard "*")
+  myExtension = "*.xls*"
+
+'Target Path with Ending Extention
+  myfile = Dir(myPath & myExtension)
+  Set y = Workbooks.Open("C:\Users\Admin\Desktop\Book3.xlsx")
+  DoEvents
+  
+'Loop through each Excel file in folder
+  Do While myfile <> ""
+    'Set variable equal to opened workbook
+      Set wb = Workbooks.Open(Filename:=myPath & myfile)
+      
+      
+    'Ensure Workbook has opened before moving on to next line of code
+      DoEvents
+    
+    'Copy from file wb to y !!!!!!
+      For lngrow = 2 To wb.Worksheets("Sheet1").Cells(wb.Worksheets("Sheet1").Rows.Count, "A").End(xlUp).Row
+      If InStr(1, wb.Worksheets("Sheet1").Cells(lngrow, "A").Value2, strSearchString, vbTextCompare) > 0 Then
+         wb.Worksheets("Sheet1").Range(wb.Worksheets("Sheet1").Cells(lngrow, 1), wb.Worksheets("Sheet1").Cells(lngrow, 13)).Copy
+      End If
+      Next lngrow
+      
+      y.Worksheets("Sheet1").Cells(Rows.Count, 1).End(xlUp).Offset(1, 0).PasteSpecial xlPasteValues
+      
+      'Save and Close Workbook
+      wb.Close savechanges:=True
+      
+      'Ensure Workbook has closed before moving on to next line of code
+      DoEvents
+      
+      'Get next file name
+      myfile = Dir
+  
+      
+    'Ensure Workbook has closed before moving on to next line of code
+      DoEvents
+  Loop
+
+'Message Box when tasks are completed
+  MsgBox "Task Complete!"
+
+ResetSettings:
+  'Reset Macro Optimization Settings
+    Application.EnableEvents = True
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+
+End Sub
